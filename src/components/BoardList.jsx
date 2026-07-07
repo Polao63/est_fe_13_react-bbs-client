@@ -2,42 +2,81 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import axios from "axios";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router";
 
-function Board({data}){
-  return(
-      <tr>
-        <td>
-          <Form.Check />
-        </td>
-        <td>{data.id}</td>
-        <td>{data.title}</td>
-        <td>{data.writer}</td>
-        <td>{data.date}</td>
-      </tr>
+function Board({ data, onCheckBoxChange }) {
+  return (
+    <tr>
+      <td>
+        <Form.Check
+          onChange={e => {
+            onCheckBoxChange(e.target.checked, data.id);
+          }}
+        />
+      </td>
+      <td>{data.id}</td>
+      <td>
+        <Link to={`/view/${data.id}`}>{data.title}</Link>
+      </td>
+      <td>{data.writer}</td>
+      <td>{data.date}</td>
+    </tr>
   );
 }
 
-
-
 export default function BoardList() {
-  const [list,setList] = useState([]);
+  console.log("BoardList 렌더");
+  const [list, setList] = useState([]);
+  const [checkList, setCheckList] = useState([]); //[9,10]
 
-  useEffect(()=>{
+
+  const getList = useCallback(() => {
     axios
       .get("http://localhost:3000/list", {})
       .then(response => {
-        console.log(response);
+        console.log(response.data);
         setList(response.data);
       })
       .catch(error => {
         console.error(error);
       })
       .finally(() => {
-        console.log("Request completed");
+        console.log("요청완료");
       });
-  },[])
+  }, []);
+
+  useEffect(() => {
+    getList();
+  }, [getList]);
+
+  const onCheckBoxChange = (checked, id) => {
+    setCheckList(prev => {
+      if (checked) {
+        return [...prev, id];
+      } else {
+        return prev.filter(item => item !== id);
+      }
+    });
+  };
+  const handleDelete = () => {
+    if (checkList.length === 0) {
+      alert("삭제할 글을 선택해주세요.");
+      return;
+    }
+
+    const boardIdList = checkList.join(); //[11,12]---> 11,12
+
+    axios
+      .post("http://localhost:3000/deleteselect", { boardIdList })
+      .then(response => {
+        getList();
+      })
+      .catch(error => {
+        console.error(error);
+      })
+      .finally(() => {});
+  };
 
   return (
     <>
@@ -52,15 +91,24 @@ export default function BoardList() {
           </tr>
         </thead>
         <tbody>
-          {list.map((item, idx) => (
-            <Board key={idx} data={item} />
-          ))}
+          {list.length === 0 ? (
+            <tr>
+              <td colSpan={5}>글이 없습니다.</td>
+            </tr>
+          ) : (
+            list.map((item, idx) => (
+              <Board key={idx} data={item} onCheckBoxChange={onCheckBoxChange} />
+            ))
+          )}
         </tbody>
       </Table>
       <div className="d-flex gap-1 justify-content-end">
-        <Button variant="primary">입력</Button>
-        <Button variant="secondary">수정</Button>
-        <Button variant="danger">삭제</Button>
+        <Link to="/write" className="btn btn-primary">
+          입력
+        </Link>
+        <Button variant="danger" onClick={handleDelete}>
+          삭제
+        </Button>
       </div>
     </>
   );
