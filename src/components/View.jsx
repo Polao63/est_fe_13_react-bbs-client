@@ -61,6 +61,7 @@ export default function View({ handleModify }) {
   const handleClick = () => {
     handleModify(id);
   };
+
   const handleDelete = () => {
     if (window.confirm("정말 삭제할까요?")) {
       axios
@@ -85,7 +86,7 @@ export default function View({ handleModify }) {
       </div>
       <hr />
       {content.content}
-      {content.image_path && (
+      {content.image && (
         <div>
           <img 
           src={`http://localhost:3000/${content.image}`} 
