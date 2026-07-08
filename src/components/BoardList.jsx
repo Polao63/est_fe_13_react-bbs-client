@@ -33,7 +33,7 @@ export default function BoardList() {
 
   const getList = useCallback(() => {
     axios
-      .get("http://localhost:3000/list", {})
+      .get("http://34.22.100.101:3000/list", {})
       .then(response => {
         console.log(response.data);
         setList(response.data);
@@ -68,7 +68,7 @@ export default function BoardList() {
     const boardIdList = checkList.join(); //[11,12]---> 11,12
 
     axios
-      .post("http://localhost:3000/deleteselect", { boardIdList })
+      .post("http://34.22.100.101:3000/deleteselect", { boardIdList })
       .then(response => {
         getList();
       })
